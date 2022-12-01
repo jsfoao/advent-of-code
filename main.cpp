@@ -1,5 +1,5 @@
 #include <iostream>
-#include "src/challenges.h"
+#include "src/day1.h"
 
 int main()
 {

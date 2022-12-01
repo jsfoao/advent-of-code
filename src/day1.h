@@ -1,4 +1,3 @@
-#pragma once
 #include <iostream>
 #include <vector>
 #include <string>
@@ -17,7 +16,7 @@ namespace challenges
 
 		// table
 		int max = 0;
-		int topMaxes[3] = {0, 0, 0};
+		int topMaxes[3] = { 0, 0, 0 };
 
 		// elf properties
 		int total = 0;
@@ -75,7 +74,7 @@ namespace challenges
 			sumTop += topMaxes[i];
 		}
 
- 		std::cout << "Answer P1: " << max << std::endl;
- 		std::cout << "Answer P2: " << sumTop << std::endl;
+		std::cout << "Answer P1: " << max << std::endl;
+		std::cout << "Answer P2: " << sumTop << std::endl;
 	}
 }
