@@ -129,9 +129,9 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\fileutils.cpp" />
+    <ClCompile Include="src\day1.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\challenges.h" />
     <ClInclude Include="src\fileutils.h" />
   </ItemGroup>
   <ItemGroup>

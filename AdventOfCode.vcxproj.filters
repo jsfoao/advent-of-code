@@ -21,12 +21,12 @@
     <ClCompile Include="src\fileutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\day1.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fileutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\challenges.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
