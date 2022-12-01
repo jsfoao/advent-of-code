@@ -3,11 +3,8 @@
 #include <iostream>
 #include <string>
 
-namespace Nata
+class FileUtils
 {
-    class FileUtils
-    {
-    public:
-        static std::string ReadFile(const char* filepath);
-    };
-}
+public:
+    static std::string ReadFile(const char* filepath);
+};

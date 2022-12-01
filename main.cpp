@@ -1,6 +1,7 @@
 #include <iostream>
+#include "src/challenges.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	challenges::day1();
 }
