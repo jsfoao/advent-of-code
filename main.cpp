@@ -1,7 +1,8 @@
+#pragma once
 #include <iostream>
-#include "src/day1.h"
+#include "src/day2.hpp"
 
 int main()
 {
-	challenges::day1();
+	challenges::day2_p1();
 }

@@ -21,7 +21,7 @@
     <ClCompile Include="src\fileutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\day1.h">
+    <ClCompile Include="src\day1.hpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,9 +29,13 @@
     <ClInclude Include="src\fileutils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\day2.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="input\day1.txt" />
     <Text Include="input\day1_example.txt" />
+    <Text Include="input\day2.txt" />
   </ItemGroup>
 </Project>
