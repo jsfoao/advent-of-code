@@ -31,7 +31,6 @@ namespace challenges
 		std::cout << "Answer: " << sum << std::endl;
 	}
 
-	// rock = 0, paper = 1, scissors = 2
 	void day2_p2()
 	{
 		std::ifstream file("input\\day2.txt");
