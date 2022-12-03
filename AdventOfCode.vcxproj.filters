@@ -32,10 +32,14 @@
     <ClInclude Include="src\day2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\day3.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="input\day1.txt" />
     <Text Include="input\day1_example.txt" />
     <Text Include="input\day2.txt" />
+    <Text Include="input\day3.txt" />
   </ItemGroup>
 </Project>
