@@ -4,5 +4,5 @@
 
 int main()
 {
-	challenges::day3_p1();
+	challenges::day3_p2();
 }
