@@ -3,16 +3,9 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include "src/day6.hpp"
-
-
-int f(int x)
-{
-	return (2 * x) + 1;
-}
-
+#include "src/day7.hpp"
 
 int main()
 {
-	challenges::day6_p1();
+	challenges::day7_p1();
 }
