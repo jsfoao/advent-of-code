@@ -3,9 +3,16 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include "src/day5.hpp"
+#include "src/day6.hpp"
+
+
+int f(int x)
+{
+	return (2 * x) + 1;
+}
+
 
 int main()
 {
-	challenges::day5_p2();
+	challenges::day6_p1();
 }
