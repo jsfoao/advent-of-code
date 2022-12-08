@@ -10,14 +10,6 @@
 
 namespace challenges
 {
-	// $ is command
-	// cd changes current directory
-		// cd x moves IN one level: Looks for x in current directory and makes x current directory
-		// cd .. moves OUT one level: Finds parent directory and makes it current directory
-		// cd / makes current directory the outermost directory
-	//ls prints all files and directories in current directory
-		// 
-
 	class Object
 	{
 	public:
@@ -25,12 +17,29 @@ namespace challenges
 		std::string Name;
 		unsigned int ID;
 		unsigned int Size;
+		std::string Path;
 
 		Object()
 		{
 			Parent = nullptr;
 			Name = "";
 			ID = DEFAULT_ID;
+			Size = 0;
+			Path = "";
+		}
+
+	protected:
+		std::string GeneratePath()
+		{
+			Object* curr = Parent;
+			std::string path = "";
+			path += Name;
+			while (curr != nullptr)
+			{
+				path += "/" + curr->Name;
+				curr = curr->Parent;
+			}
+			return path;
 		}
 	};
 
@@ -38,7 +47,6 @@ namespace challenges
 	{
 	public:
 		std::vector<Object*> Children;
-		bool IsRoot;
 
 	public:
 		Directory(Directory* parent, std::string name)
@@ -48,29 +56,26 @@ namespace challenges
 			Size = 0;
 			if (parent != nullptr)
 			{
-				IsRoot = false;
 				parent->AddChild(this);
 				Parent = parent;
 			}
-			else
-			{
-				IsRoot = true;
-			}
+			Path = GeneratePath();
 		}
 
 		Object* AddChild(Object* child)
 		{
 			Children.push_back(child);
-			Size += child->Size;
-			if (child->Parent == nullptr)
+			child->Parent = this;
+
+			Directory* curr = this;
+			while (curr != nullptr)
 			{
-				child->Parent = this;
+				curr->Size += child->Size;
+				curr = (Directory*)curr->Parent;
 			}
-			else
-			{
-				Directory* dir = (Directory*)child->Parent;
-				dir->RemoveChild(child);
-			}
+
+			//Directory* dir = (Directory*)child->Parent;
+			//dir->RemoveChild(child);
 			return child;
 		}
 
@@ -81,6 +86,12 @@ namespace challenges
 				if (Children[i] == child)
 				{
 					Children.erase(Children.begin() + i);
+					Directory* curr = this;
+					while (curr != nullptr)
+					{
+						curr->Size -= child->Size;
+						curr = (Directory*)curr->Parent;
+					}
 					Size -= child->Size;
 					return true;
 				}
@@ -99,6 +110,7 @@ namespace challenges
 			Size = size;
 			parent->AddChild(this);
 			Parent = parent;
+			Path = GeneratePath();
 		}
 	};
 
@@ -107,12 +119,53 @@ namespace challenges
 	public:
 		Directory* Root;
 		Directory* Current;
+		std::vector<Object*> Objects;
 
 	public:
 		FileManager()
 		{
-			Root = new Directory(nullptr, "/");
+			Root = (Directory*)Create(DIRECTORY_ID, "/", nullptr);
 			Current = Root;
+		}
+
+		Object* Create(unsigned int typeId, std::string name, Directory* parent, unsigned int size = 0)
+		{
+			if (typeId == DIRECTORY_ID)
+			{
+				Directory* dir = new Directory(parent, name);
+				Objects.push_back(dir);
+				return dir;
+			}
+			else if (typeId == FILE_ID)
+			{
+				File* fil = new File(parent, name, size);
+				Objects.push_back(fil);
+				return fil;
+			}
+		}
+
+		Object* Find(std::string name)
+		{
+			for (Object* obj : Objects)
+			{
+				if (obj->Name == name)
+				{
+					return obj;
+				}
+			}
+			std::cout << "WARNING::FILEMANAGER::FIND : Couldn't find object of name: " << name << std::endl;
+		}
+
+		Directory* FindDir(std::string name)
+		{
+			for (Object* obj : Objects)
+			{
+				if (obj->Name == name)
+				{
+					return (Directory*)obj;
+				}
+			}
+			std::cout << "WARNING::FILEMANAGER::FIND : Couldn't find object of name: " << name << std::endl;
 		}
 
 		static void Print(Directory* directory)
@@ -131,61 +184,103 @@ namespace challenges
 		}
 	};
 
-	class Command
-	{
-	public:
-		std::string Input;
-
-	public:
-		Command(std::string input)
-		{
-			Input = input;
-		}
-
-		virtual void Execute() {};
-	};
-
 	class CommandManager
 	{
-	public:
-		std::vector<Command> Commands;
+	private:
+		FileManager* m_FileManager;
 
 	public:
 		void ReadCommand(std::string input)
 		{
-			for (Command command : Commands)
+			// cd
+			if (input[2] == 'c' && input[3] == 'd')
 			{
-				if (input == command.Input)
+				// cd ..
+				if (input[5] == '.' && input[6] == '.')
 				{
-					command.Execute();
+					// command
+					if (m_FileManager->Current->Parent != nullptr)
+					{
+						SetCurrent(m_FileManager->Current->Parent);
+					}
+				}
+				// cd x
+				else if (input[5] != ' ')
+				{
+					std::string objInput = "";
+					for (int i = 5; i < input.size(); i++)
+					{
+						objInput += input[i];
+					}
+
+					//command
+					Object* obj = m_FileManager->Find(objInput);
+					SetCurrent(obj);
 				}
 			}
-		}
+			
+			//// ls
+			//if (input[2] == 'l' && input[3] == 's')
+			//{
+			//}
 
-		void Register(Command command)
-		{
-			Commands.push_back(command);
-		}
-
-		void Unregister(Command command)
-		{
-			for (size_t i = 0; i < Commands.size(); i++)
+			// file
+			else if (input[0] >= '1' && input[0] <= '9')
 			{
-				if (command.Input == Commands[i].Input)
+				std::string cmdInput = "";
+				bool flag = false;
+				int num = 0;
+				std::string fileName = "";
+				for (int i = 0; i < input.size(); i++)
 				{
-					Commands.erase(Commands.begin() + i);
+					if (input[i] == ' ')
+					{
+						flag = true;
+						continue;
+					}
+					if (flag)
+					{
+						fileName += input[i];
+					}
+					else
+					{
+						cmdInput += input[i];
+					}
 				}
+				m_FileManager->Create(FILE_ID, fileName, m_FileManager->Current, std::stoi(cmdInput));
+			}
+
+			// directory
+			else if (input[0] == 'd' && input[1] == 'i' && input[2] == 'r')
+			{
+				std::string dirInput = "";
+				for (int i = 4; i < input.size(); i++)
+				{
+					dirInput += input[i];
+				}
+				m_FileManager->Create(DIRECTORY_ID, dirInput, m_FileManager->Current);
 			}
 		}
 
-		void PrintCommands()
+		void SetCurrent(Object* obj)
 		{
-			std::cout << "Commands: ";
-			for (Command command : Commands)
+			if (obj->ID != DIRECTORY_ID)
 			{
-				std::cout << command.Input << ", ";
+				return;
 			}
-			std::cout << std::endl;
+			m_FileManager->Current = (Directory*)obj;
+			//std::cout << "Manager > Current : " << obj->Name << std::endl;
+		}
+
+
+		void Bind(FileManager* fm)
+		{
+			m_FileManager = fm;
+		}
+
+		void Unbind()
+		{
+			m_FileManager = nullptr;
 		}
 	};
 
@@ -200,21 +295,47 @@ namespace challenges
 		if (!file.is_open())
 			return;
 
-		CommandManager commandManager;
-		commandManager.Register(Command("cd"));
-		commandManager.Register(Command("ls"));
-		//commandManager.PrintCommands();
+		FileManager* fm = new FileManager();
+		CommandManager* cm = new CommandManager();
+		cm->Bind(fm);
 
-		FileManager fileManager;
-		Directory* dir = new Directory(fileManager.Root, "random");
-		File* fil = new File(fileManager.Root, "hello.txt", 10);
-		FileManager::Print(fileManager.Root);
+		while (std::getline(file, line))
+		{
+			cm->ReadCommand(line);
+		}
 
+		int sum = 0;
+		for (Object* obj : fm->Objects)
+		{
+			if (obj->ID == DIRECTORY_ID && obj->Size < 100000)
+			{
+				sum += obj->Size;
+			}
 
+			int deep = 0;
+			Directory* curr = (Directory*)obj;
+			while (curr != nullptr)
+			{
+				deep++;
+				curr = (Directory*)curr->Parent;
+			}
 
-		//while (std::getline(file, line))
-		//{
-		//}
+			for (int i = 0; i < deep; i++)
+			{
+				std::cout << "--";
+			}
+
+			if (obj->ID == DIRECTORY_ID)
+			{
+				std::cout << "(" << obj->Name << ")" << " (" << obj->Size << ")" << " - " << obj->Path << std::endl;
+			}
+			if (obj->ID == FILE_ID)
+			{
+				std::cout << obj->Name << " (" << obj->Size << ")" << " - " << obj->Path << std::endl;
+			}
+		}
 		file.close();
+
+		std::cout << "Answer: " << sum << std::endl;
 	}
 }
