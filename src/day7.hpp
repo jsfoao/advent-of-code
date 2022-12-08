@@ -285,6 +285,7 @@ namespace challenges
 			Command::ReadCommand(line);
 			l++;
 		}
+		file.close();
 
 		int sum = 0;
 		for (Object* obj : Object::GetObjects())
@@ -294,8 +295,43 @@ namespace challenges
 				sum += obj->GetSize();
 			}
 		}
-		file.close();
 
 		std::cout << "Answer: " << sum << std::endl;
+	}
+
+	void day7_p2()
+	{
+		std::ifstream file("input\\day7.txt");
+		std::string line;
+		if (!file.is_open())
+			return;
+
+		Object::Init();
+
+		unsigned int l = 1;
+		while (std::getline(file, line))
+		{
+			Debug::FileLine = l;
+			Command::ReadCommand(line);
+			l++;
+		}
+		file.close();
+
+		int space = 30000000 - (70000000 - Object::GetRoot()->GetSize());
+		std::vector<int> mins;
+		int min = 70000000;
+		for (Object* obj : Object::GetObjects())
+		{
+			int size = obj->GetSize();
+			if (obj->ID == DIRECTORY && size >= space)
+			{
+				if (size < min)
+				{
+					min = size;
+				}
+			}
+		}
+
+		std::cout << "Answer: " << min << std::endl;
 	}
 }

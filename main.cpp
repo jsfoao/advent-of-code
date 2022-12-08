@@ -7,5 +7,5 @@
 
 int main()
 {
-	challenges::day7_p1();
+	challenges::day7_p2();
 }
