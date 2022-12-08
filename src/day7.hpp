@@ -4,28 +4,174 @@
 #include <string>
 #include <fstream>
 
-#define DEFAULT_ID 0
-#define DIRECTORY_ID 1
-#define FILE_ID 2
+#define DEFAULT 0
+#define DIRECTORY 1
+#define FILE 2
 
 namespace challenges
 {
-	class Object
+	class Debug
 	{
 	public:
+		static unsigned int FileLine;
+		static void Log(std::string log)
+		{
+			std::cout << "Log: " << log << " (" << FileLine << ")" << std::endl;
+		}
+	};
+
+	unsigned int Debug::FileLine = 0;
+
+	class Object
+	{
+	protected:
+		static Object* m_Root;
+		static Object* m_Current;
+		static std::vector<Object*> m_Objects;
+
+		unsigned int m_Size;
+	public:
 		Object* Parent;
+		std::vector<Object*> Children;
 		std::string Name;
 		unsigned int ID;
-		unsigned int Size;
 		std::string Path;
 
-		Object()
+	protected:
+		Object(unsigned int id, std::string name, Object* parent, unsigned int size = 0, bool root = false)
 		{
-			Parent = nullptr;
-			Name = "";
-			ID = DEFAULT_ID;
-			Size = 0;
-			Path = "";
+			Name = name;
+			ID = id;
+			m_Size = size;
+			if (!root)
+			{
+				Parent = parent;
+				Parent->AddChild(this);
+			}
+			Path = GeneratePath();
+		}
+
+		void Resize(int resize)
+		{
+			m_Size += resize;
+		}
+
+	public:
+		Object* AddChild(Object* child)
+		{
+			if (ID != DIRECTORY)
+			{
+				Debug::Log("AddChild: Not a directory");
+			}
+
+			Children.push_back(child);
+			child->Parent = this;
+
+			Object* curr = this;
+			while (curr != nullptr)
+			{
+				curr->m_Size += child->m_Size;
+				curr = curr->Parent;
+			}
+			return child;
+		}
+
+		bool RemoveChild(Object* child)
+		{
+			for (int i = 0; i < Children.size(); i++)
+			{
+				if (Children[i] == child)
+				{
+					Children.erase(Children.begin() + i);
+					Object* curr = this;
+					while (curr != nullptr)
+					{
+						curr->m_Size -= child->m_Size;
+						curr = curr->Parent;
+					}
+					m_Size -= child->m_Size;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		unsigned int GetSize()
+		{
+			return m_Size;
+		}
+		
+		// creates root folder
+		static void Init()
+		{
+			m_Root = Create(DIRECTORY, "/", nullptr, 0, true);
+			SetCurrent(m_Root);
+		}
+
+		static Object* Create(unsigned int id, std::string name, Object* parent, unsigned int size = 0, bool root = false)
+		{
+			Object* obj = new Object(id, name, parent, size, root);
+			AddObject(obj);
+			return obj;
+		}
+
+		static Object* FindAll(std::string name)
+		{
+			for (Object* obj : m_Objects)
+			{
+				if (obj->Name == name)
+				{
+					return obj;
+				}
+			}
+			Debug::Log("FindAll: Couldn't find object in all directories");
+		}
+
+		static Object* Find(std::string name)
+		{
+			if (name == "/")
+			{
+				return m_Root;
+			}
+			for (Object* obj : Object::GetCurrent()->Children)
+			{
+				if (obj->Name == name)
+				{
+					return obj;
+				}
+			}
+			Debug::Log("Find: Couldn't find object in this directory");
+		}
+
+		static std::vector<Object*> GetObjects()
+		{
+			return m_Objects;
+		}
+
+		static Object* AddObject(Object* obj)
+		{
+			m_Objects.push_back(obj);
+			return obj;
+		}
+
+		static Object* GetRoot()
+		{
+			return m_Root;
+		}
+
+		static Object* GetCurrent()
+		{
+			return m_Current;
+		}
+
+		static void SetCurrent(Object* curr)
+		{
+			if (curr->ID != DIRECTORY || curr == nullptr)
+			{
+				Debug::Log("SetCurrent: Can't set to invalid directory");
+				return;
+			}
+			m_Current = curr;
 		}
 
 	protected:
@@ -43,154 +189,14 @@ namespace challenges
 		}
 	};
 
-	class Directory : public Object
+	Object* Object::m_Root = nullptr;
+	Object* Object::m_Current = nullptr;
+	std::vector<Object*> Object::m_Objects;
+
+	class Command
 	{
 	public:
-		std::vector<Object*> Children;
-
-	public:
-		Directory(Directory* parent, std::string name)
-		{
-			Name = name;
-			ID = DIRECTORY_ID;
-			Size = 0;
-			if (parent != nullptr)
-			{
-				parent->AddChild(this);
-				Parent = parent;
-			}
-			Path = GeneratePath();
-		}
-
-		Object* AddChild(Object* child)
-		{
-			Children.push_back(child);
-			child->Parent = this;
-
-			Directory* curr = this;
-			while (curr != nullptr)
-			{
-				curr->Size += child->Size;
-				curr = (Directory*)curr->Parent;
-			}
-
-			//Directory* dir = (Directory*)child->Parent;
-			//dir->RemoveChild(child);
-			return child;
-		}
-
-		bool RemoveChild(Object* child)
-		{
-			for (int i = 0; i < Children.size(); i++)
-			{
-				if (Children[i] == child)
-				{
-					Children.erase(Children.begin() + i);
-					Directory* curr = this;
-					while (curr != nullptr)
-					{
-						curr->Size -= child->Size;
-						curr = (Directory*)curr->Parent;
-					}
-					Size -= child->Size;
-					return true;
-				}
-			}
-			return false;
-		}
-	};
-
-	class File : public Object
-	{
-	public:
-		File(Directory* parent, std::string name, unsigned int size)
-		{
-			Name = name;
-			ID = FILE_ID;
-			Size = size;
-			parent->AddChild(this);
-			Parent = parent;
-			Path = GeneratePath();
-		}
-	};
-
-	class FileManager
-	{
-	public:
-		Directory* Root;
-		Directory* Current;
-		std::vector<Object*> Objects;
-
-	public:
-		FileManager()
-		{
-			Root = (Directory*)Create(DIRECTORY_ID, "/", nullptr);
-			Current = Root;
-		}
-
-		Object* Create(unsigned int typeId, std::string name, Directory* parent, unsigned int size = 0)
-		{
-			if (typeId == DIRECTORY_ID)
-			{
-				Directory* dir = new Directory(parent, name);
-				Objects.push_back(dir);
-				return dir;
-			}
-			else if (typeId == FILE_ID)
-			{
-				File* fil = new File(parent, name, size);
-				Objects.push_back(fil);
-				return fil;
-			}
-		}
-
-		Object* Find(std::string name)
-		{
-			for (Object* obj : Objects)
-			{
-				if (obj->Name == name)
-				{
-					return obj;
-				}
-			}
-			std::cout << "WARNING::FILEMANAGER::FIND : Couldn't find object of name: " << name << std::endl;
-		}
-
-		Directory* FindDir(std::string name)
-		{
-			for (Object* obj : Objects)
-			{
-				if (obj->Name == name)
-				{
-					return (Directory*)obj;
-				}
-			}
-			std::cout << "WARNING::FILEMANAGER::FIND : Couldn't find object of name: " << name << std::endl;
-		}
-
-		static void Print(Directory* directory)
-		{
-			std::cout << directory->Name << " (" << "folder" << ", " << directory->Size << ")" << std::endl;
-			for (Object* obj : directory->Children)
-			{
-				std::string type = "";
-				if (obj->ID == DIRECTORY_ID)
-					type = "folder";
-				else if (obj->ID == FILE_ID)
-					type = "file";
-
-				std::cout << "-- " << obj->Name << " (" << type << ", " << obj->Size << ")" << std::endl;
-			}
-		}
-	};
-
-	class CommandManager
-	{
-	private:
-		FileManager* m_FileManager;
-
-	public:
-		void ReadCommand(std::string input)
+		static void ReadCommand(std::string input)
 		{
 			// cd
 			if (input[2] == 'c' && input[3] == 'd')
@@ -199,9 +205,9 @@ namespace challenges
 				if (input[5] == '.' && input[6] == '.')
 				{
 					// command
-					if (m_FileManager->Current->Parent != nullptr)
+					if (Object::GetCurrent()->Parent != nullptr)
 					{
-						SetCurrent(m_FileManager->Current->Parent);
+						Object::SetCurrent(Object::GetCurrent()->Parent);
 					}
 				}
 				// cd x
@@ -214,8 +220,8 @@ namespace challenges
 					}
 
 					//command
-					Object* obj = m_FileManager->Find(objInput);
-					SetCurrent(obj);
+					Object* obj = Object::Find(objInput);
+					Object::SetCurrent(obj);
 				}
 			}
 			
@@ -224,7 +230,7 @@ namespace challenges
 			//{
 			//}
 
-			// file
+			// create file under current direcotry
 			else if (input[0] >= '1' && input[0] <= '9')
 			{
 				std::string cmdInput = "";
@@ -247,10 +253,10 @@ namespace challenges
 						cmdInput += input[i];
 					}
 				}
-				m_FileManager->Create(FILE_ID, fileName, m_FileManager->Current, std::stoi(cmdInput));
+				Object::Create(FILE, fileName, Object::GetCurrent(), std::stoi(cmdInput));
 			}
 
-			// directory
+			// create directory under current directory
 			else if (input[0] == 'd' && input[1] == 'i' && input[2] == 'r')
 			{
 				std::string dirInput = "";
@@ -258,35 +264,10 @@ namespace challenges
 				{
 					dirInput += input[i];
 				}
-				m_FileManager->Create(DIRECTORY_ID, dirInput, m_FileManager->Current);
+				Object::Create(DIRECTORY, dirInput, Object::GetCurrent());
 			}
-		}
-
-		void SetCurrent(Object* obj)
-		{
-			if (obj->ID != DIRECTORY_ID)
-			{
-				return;
-			}
-			m_FileManager->Current = (Directory*)obj;
-			//std::cout << "Manager > Current : " << obj->Name << std::endl;
-		}
-
-
-		void Bind(FileManager* fm)
-		{
-			m_FileManager = fm;
-		}
-
-		void Unbind()
-		{
-			m_FileManager = nullptr;
 		}
 	};
-
-
-
-
 
 	void day7_p1()
 	{
@@ -295,43 +276,22 @@ namespace challenges
 		if (!file.is_open())
 			return;
 
-		FileManager* fm = new FileManager();
-		CommandManager* cm = new CommandManager();
-		cm->Bind(fm);
+		Object::Init();
 
+		unsigned int l = 1;
 		while (std::getline(file, line))
 		{
-			cm->ReadCommand(line);
+			Debug::FileLine = l;
+			Command::ReadCommand(line);
+			l++;
 		}
 
 		int sum = 0;
-		for (Object* obj : fm->Objects)
+		for (Object* obj : Object::GetObjects())
 		{
-			if (obj->ID == DIRECTORY_ID && obj->Size < 100000)
+			if (obj->ID == DIRECTORY && obj->GetSize() < 100000)
 			{
-				sum += obj->Size;
-			}
-
-			int deep = 0;
-			Directory* curr = (Directory*)obj;
-			while (curr != nullptr)
-			{
-				deep++;
-				curr = (Directory*)curr->Parent;
-			}
-
-			for (int i = 0; i < deep; i++)
-			{
-				std::cout << "--";
-			}
-
-			if (obj->ID == DIRECTORY_ID)
-			{
-				std::cout << "(" << obj->Name << ")" << " (" << obj->Size << ")" << " - " << obj->Path << std::endl;
-			}
-			if (obj->ID == FILE_ID)
-			{
-				std::cout << obj->Name << " (" << obj->Size << ")" << " - " << obj->Path << std::endl;
+				sum += obj->GetSize();
 			}
 		}
 		file.close();
