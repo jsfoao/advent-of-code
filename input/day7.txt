@@ -13,7 +13,7 @@ dir qhs
 236905 sjrrgd.phh
 dir sntcp
 dir sqs
-$ cd dpbwg
+$ cd dpbwg  
 $ ls
 dir dgh
 100731 dpbwg
