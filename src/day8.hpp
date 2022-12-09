@@ -4,8 +4,8 @@
 #include <string>
 #include <fstream>
 
-#define GRID_X 5
-#define GRID_Y 5
+#define GRID_X 99
+#define GRID_Y 99
 namespace challenges
 {
 	bool IsVisible(unsigned int grid[GRID_X][GRID_Y], int x, int y)
@@ -60,13 +60,10 @@ namespace challenges
 
 	int ScenicScore(unsigned int grid[GRID_X][GRID_Y], int x, int y)
 	{
-		if (x == 2 && y == 3)
-		{
-			std::cout << "hello" << std::endl;
-		}
-
 		int curr = grid[x][y];
 		int score = 1;
+		int index = 0;
+		int addScore = 0;
 
 		// left
 		bool blocked = false;
@@ -74,63 +71,90 @@ namespace challenges
 		{
 			if (grid[xl][y] >= curr)
 			{
-				score *= std::abs(xl - x);
+				index = xl;
 				blocked = true;
 				break;
 			}
 		}
 		if (!blocked)
 		{
-			score *= x;
+			addScore = x;
 		}
+		else
+		{
+			addScore = std::abs(index - x);
+		}
+		score *= addScore;
 
 		// right
+		index = 0;
+		addScore = 0;
 		blocked = false;
 		for (int xr = x + 1; xr < GRID_X; xr++)
 		{
 			if (grid[xr][y] >= curr)
 			{
-				score *= std::abs(xr - x);
+				index = xr;
 				blocked = true;
 				break;
 			}
 		}
 		if (!blocked)
 		{
-			score *= GRID_X - x;
+			addScore = GRID_X - (x + 1);
 		}
+		else
+		{
+			addScore = std::abs(index - x);
+		}
+		score *= addScore;
+
 
 		// bottom
+		index = 0;
+		addScore = 0;
 		blocked = false;
 		for (int yb = y + 1; yb < GRID_Y; yb++)
 		{
 			if (grid[x][yb] >= curr)
 			{
-				score *= std::abs(yb - y);
+				index = yb;
 				blocked = true;
 				break;
 			}
 		}
 		if (!blocked)
 		{
-			score *= GRID_Y - y;
+			addScore = GRID_Y - (y + 1);
 		}
+		else
+		{
+			addScore = std::abs(index - y);
+		}
+		score *= addScore;
 
 		// top
+		index = 0;
+		addScore = 0;
 		blocked = false;
-		for (int yt = x - 1; yt >= 0; yt--)
+		for (int yt = y - 1; yt >= 0; yt--)
 		{
 			if (grid[x][yt] >= curr)
 			{
-				score *= std::abs(yt - y);
+				index = yt;
 				blocked = true;
 				break;
 			}
 		}
 		if (!blocked)
 		{
-			score *= y;
+			addScore = y;
 		}
+		else
+		{
+			addScore = std::abs(index - y);
+		}
+		score *= addScore;
 
 		return score;
 	}
