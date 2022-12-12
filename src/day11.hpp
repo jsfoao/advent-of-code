@@ -5,9 +5,22 @@
 #include <fstream>
 #include <queue>
 
-#define WORRYDIV 3
 namespace challenges
 {	
+	int mod(uint64_t val, int a)
+	{
+		std::string num = std::to_string(val);
+
+		// Initialize result
+		int res = 0;
+
+		// One by one process all digits of 'num'
+		for (int i = 0; i < num.length(); i++)
+			res = (res * 10 + (int)num[i] - '0') % a;
+
+		return res;
+	}
+
 	enum Op
 	{
 		Add, Mult, MultSelf
@@ -22,12 +35,14 @@ namespace challenges
 		uint64_t Test;
 		Monkey* TargetTrue;
 		Monkey* TargetFalse;
+		bool WorryDiv;
 
 		Monkey()
 		{
 			Inspects = 0;
 			TargetTrue = nullptr;
 			TargetFalse = nullptr;
+			WorryDiv = false;
 		}
 
 		Monkey(Op op, uint64_t opVal, uint64_t test)
@@ -38,6 +53,7 @@ namespace challenges
 			Inspects = 0;
 			TargetTrue = nullptr;
 			TargetFalse = nullptr;
+			WorryDiv = false;
 		}
 
 		void Inspect()
@@ -61,16 +77,36 @@ namespace challenges
 				default:
 					break;
 				}
-				//worry = std::round(worry / WORRYDIV);
-				if (worry % Test == 0)
+				if (WorryDiv)
 				{
-					Items.pop();
-					TargetTrue->Items.push(worry);
+					worry = std::round(worry / 3);
+
+				}
+				if (Operation.first == Op::MultSelf)
+				{
+					if (mod(item, Test) == 0)
+					{
+						Items.pop();
+						TargetTrue->Items.push(worry);
+					}
+					else
+					{
+						Items.pop();
+						TargetFalse->Items.push(worry);
+					}
 				}
 				else
 				{
-					Items.pop();
-					TargetFalse->Items.push(worry);
+					if (mod(worry, Test) == 0)
+					{
+						Items.pop();
+						TargetTrue->Items.push(worry);
+					}
+					else
+					{
+						Items.pop();
+						TargetFalse->Items.push(worry);
+					}
 				}
 			}
 		}
@@ -99,7 +135,6 @@ namespace challenges
 		m1->Items.push(98);
 		m1->Items.push(75);
 		monkas.push_back(m1);
-		std::cout << m1->Items.front() << std::endl;
 		Monkey* m2 = new Monkey(Op::Add, 8, 5);
 		m2->Items.push(85);
 		m2->Items.push(79);
