@@ -3,9 +3,9 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include "src/day10.hpp"
+#include "src/day11.hpp"
 
 int main()
 {
-	challenges::day10_p2();
+	challenges::day11_p1();
 }

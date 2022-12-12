@@ -134,6 +134,7 @@
     <ClCompile Include="src\day10.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\day11.hpp" />
     <ClInclude Include="src\day2.hpp" />
     <ClInclude Include="src\day3.hpp" />
     <ClInclude Include="src\day5.hpp" />
@@ -147,6 +148,7 @@
   <ItemGroup>
     <Text Include="input\day1.txt" />
     <Text Include="input\day10.txt" />
+    <Text Include="input\day11.txt" />
     <Text Include="input\day1_example.txt" />
     <Text Include="input\day2.txt" />
     <Text Include="input\day3.txt" />

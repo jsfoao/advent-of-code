@@ -59,6 +59,9 @@
     <ClInclude Include="src\utils\vec2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\day11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="input\day1.txt" />
@@ -72,5 +75,6 @@
     <Text Include="input\day8.txt" />
     <Text Include="input\day9.txt" />
     <Text Include="input\day10.txt" />
+    <Text Include="input\day11.txt" />
   </ItemGroup>
 </Project>
